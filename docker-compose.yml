@@ -1,4 +1,5 @@
 version: '3.8'
+
 services:
   postgres:
     image: postgres:15-alpine
@@ -20,6 +21,7 @@ services:
   backend:
     build: ./backend
     container_name: backend
+    restart: unless-stopped
     env_file: ./backend/.env
     ports:
       - "5000:5000"
@@ -29,16 +31,7 @@ services:
   frontend:
     build: ./frontend
     container_name: frontend
-    depends_on:
-      - backend
-    environment:
-      - VITE_API_URL=http://localhost:5000
-    ports:
-      - "3000:80"
-
-volumes:
-  postgres_data:
-    container_name: frontend
+    restart: unless-stopped
     depends_on:
       - backend
     environment:
