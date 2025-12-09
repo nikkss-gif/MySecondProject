@@ -2,12 +2,14 @@ FROM node:18-alpine AS base
 
 WORKDIR /usr/src/app
 
+# Install dependencies
 COPY package*.json ./
 RUN npm ci --omit=dev
 
+# Copy source code
 COPY src ./src
 
-# 🔥 FINAL FIX: Copy .env INTO container
+# Copy env file inside container
 COPY .env ./.env
 
 ENV NODE_ENV=production
