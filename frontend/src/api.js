@@ -1,4 +1,7 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || 'http://backend:5000/api';
+// Ensure API_BASE_URL has no trailing slash
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') ||
+  'http://backend:5000/api';
 
 async function handleResponse(response) {
   if (!response.ok) {
