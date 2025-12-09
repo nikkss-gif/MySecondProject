@@ -3,6 +3,7 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15-alpine
+    container_name: postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
@@ -22,11 +23,25 @@ services:
     build: ./backend
     container_name: backend
     restart: unless-stopped
-    env_file: ./backend/.env
+
+    # MAIN FIX 🔥🔥🔥
+    env_file:
+      - ./backend/.env
+
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: appdb
+      PORT: 5000
+      NODE_ENV: production
+
     ports:
       - "5000:5000"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   frontend:
     build: ./frontend
