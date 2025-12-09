@@ -3,36 +3,29 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const { pool, initDb } = require('./db');
 
-// ✅ Load .env from correct absolute path inside Docker
-dotenv.config({ path: "/usr/src/app/.env" });
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-const defaultOrigins = [
-  'http://localhost:3000',
-  'http://127.0.0.1:3000'
-];
+// Allowed origins
+const defaultOrigins = ['http://localhost:3000'];
+const userOrigins = (process.env.ALLOWED_ORIGINS || '')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
 
-const allowedOrigins = Array.from(
-  new Set(
-    defaultOrigins.concat(
-      (process.env.ALLOWED_ORIGINS || '')
-        .split(',')
-        .map(origin => origin.trim())
-        .filter(Boolean)
-    )
-  )
-);
+const allowedOrigins = Array.from(new Set([...defaultOrigins, ...userOrigins]));
 
 app.use(
   cors({
     origin(origin, callback) {
       if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
+        callback(null, true);
+      } else {
+        console.error(`❌ CORS Blocked: ${origin}`);
+        callback(new Error("Not allowed by CORS"));
       }
-      console.error(`CORS blocked: ${origin}`);
-      return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
   })
@@ -58,14 +51,11 @@ app.get('/api/entries', async (_req, res, next) => {
 app.post('/api/entries', async (req, res, next) => {
   try {
     const content = (req.body?.content || '').trim();
-
     if (!content) {
       return res.status(400).json({ message: 'Content is required.' });
     }
 
-    const {
-      rows: [entry],
-    } = await pool.query(
+    const { rows: [entry] } = await pool.query(
       'INSERT INTO entries (content) VALUES ($1) RETURNING id, content, created_at',
       [content]
     );
@@ -77,18 +67,18 @@ app.post('/api/entries', async (req, res, next) => {
 });
 
 app.use((error, _req, res, _next) => {
-  console.error(error);
+  console.error("❌ SERVER ERROR:", error);
   res.status(500).json({ message: 'Something went wrong.' });
 });
 
 async function bootstrap() {
   try {
     await initDb();
-    app.listen(PORT, () => {
-      console.log(`Backend listening on port ${PORT}`);
-    });
+    app.listen(PORT, () =>
+      console.log(`🚀 Backend running on port ${PORT}`)
+    );
   } catch (error) {
-    console.error('Failed to start server', error);
+    console.error("Failed to start server:", error);
     process.exit(1);
   }
 }
