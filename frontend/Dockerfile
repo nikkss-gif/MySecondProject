@@ -1,27 +1,25 @@
-# ---- Build Stage ----
-FROM node:18-alpine AS build
+# STEP 1: Build Stage
+FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Copy only package files first
+# install deps first
 COPY package*.json ./
-
 RUN npm ci
 
-# 👉 VERY IMPORTANT: Copy .env BEFORE vite build
+# copy env BEFORE copying full project
 COPY .env .env
 
-# Copy source code
+# now copy rest of project
 COPY . .
 
-# Build the frontend
+# build frontend
 RUN npm run build
 
-# ---- Production Stage ----
+# STEP 2: Production Stage
 FROM nginx:alpine
 
 COPY --from=build /app/dist /usr/share/nginx/html
 
 EXPOSE 80
-
 CMD ["nginx", "-g", "daemon off;"]
