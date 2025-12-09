@@ -1,53 +1,53 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { createEntry, fetchEntries, getApiBaseUrl } from './api'
-import './App.css'
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { createEntry, fetchEntries, getApiBaseUrl } from './api';
+import './App.css';
 
 function App() {
-  const [entries, setEntries] = useState([])
-  const [content, setContent] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState('')
+  const [entries, setEntries] = useState([]);
+  const [content, setContent] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
-  const apiBaseUrl = useMemo(() => getApiBaseUrl(), [])
+  const apiBaseUrl = useMemo(() => getApiBaseUrl(), []);
 
   const loadEntries = useCallback(async () => {
-    setLoading(true)
-    setError('')
+    setLoading(true);
+    setError('');
     try {
-      const data = await fetchEntries()
-      setEntries(data)
+      const data = await fetchEntries();
+      setEntries(data);
     } catch (err) {
-      setError(err.message || 'Unable to load entries')
+      setError(err.message || 'Unable to load entries');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    loadEntries()
-  }, [loadEntries])
+    loadEntries();
+  }, [loadEntries]);
 
   const handleSubmit = async (event) => {
-    event.preventDefault()
-    const trimmed = content.trim()
+    event.preventDefault();
+    const trimmed = content.trim();
     if (!trimmed) {
-      setError('Please enter some text before submitting.')
-      return
+      setError('Please enter some text before submitting.');
+      return;
     }
 
-    setSubmitting(true)
-    setError('')
+    setSubmitting(true);
+    setError('');
     try {
-      const newEntry = await createEntry(trimmed)
-      setEntries((prev) => [newEntry, ...prev])
-      setContent('')
+      const newEntry = await createEntry(trimmed);
+      setEntries((prev) => [newEntry, ...prev]);
+      setContent('');
     } catch (err) {
-      setError(err.message || 'Unable to save entry')
+      setError(err.message || 'Unable to save entry');
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="app-shell">
@@ -93,6 +93,7 @@ function App() {
               {loading ? 'Refreshing...' : 'Refresh'}
             </button>
           </div>
+
           {loading ? (
             <p className="muted">Loading entries...</p>
           ) : entries.length === 0 ? (
@@ -122,7 +123,7 @@ function App() {
         </section>
       </main>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
