@@ -1,10 +1,14 @@
 const { Pool } = require('pg');
 
-const DEFAULT_DATABASE_URL = 'postgresql://postgres:postgres@localhost:5432/appdb';
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL is not set');
+}
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || DEFAULT_DATABASE_URL,
-  ssl: process.env.PGSSLMODE === 'require' ? { rejectUnauthorized: false } : false,
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 async function initDb() {
