@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') || 'http://backend:5000/api';
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL?.replace(/\/$/, '') ||
+  'http://localhost:5000';
 
 async function handleResponse(response) {
   if (!response.ok) {
@@ -10,12 +12,12 @@ async function handleResponse(response) {
 }
 
 export async function fetchEntries() {
-  const response = await fetch(`${API_BASE_URL}/entries`);
+  const response = await fetch(`${API_BASE_URL}/api/entries`);
   return handleResponse(response);
 }
 
 export async function createEntry(content) {
-  const response = await fetch(`${API_BASE_URL}/entries`, {
+  const response = await fetch(`${API_BASE_URL}/api/entries`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ content }),
@@ -24,5 +26,5 @@ export async function createEntry(content) {
 }
 
 export function getApiBaseUrl() {
-  return API_BASE_URL;
+  return `${API_BASE_URL}/api`;
 }
