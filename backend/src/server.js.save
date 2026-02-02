@@ -1,0 +1,57 @@
+const express = require('express');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const { pool, initDb } = require('./db');
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://18.206.149.235:3000'
+];
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error('Not allowed by CORS'));
+    },
+  })
+);
+
+app.use(express.json());
+
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok' });
+});
+
+app.get('/api/entries', async (_req, res) => {
+  const { rows } = await pool.query(
+    'SELECT id, content, created_at FROM entries ORDER BY created_at DESC'
+  );
+  res.json(rows);
+});
+
+app.post('/api/entries', async (req, res) => {
+  const content = (req.body?.content || '').trim();
+  if (!content) return res.status(400).json({ message: 'Content is required.' });
+
+  const {
+    rows: [entry],
+  } = await pool.query(
+    'INSERT INTO entries (content) VALUES ($1) RETURNING id, content, created_at',
+    [content]
+  );
+
+  res.status(201).json(entry);
+});
+
+async function bootstrap() {
+  await initDb();
+  app.listen(PORT, () => console.log(`Backend 

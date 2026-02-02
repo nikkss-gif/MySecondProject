@@ -1,6 +1,9 @@
+// src/api.js
+
+// In production (Nginx reverse proxy), API is served from same origin at /api
+// In development, you can set VITE_API_URL=http://localhost:5000
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL?.replace(/\/$/, '') ||
-  'http://localhost:5000';
+  import.meta.env.VITE_API_URL?.replace(/\/$/, '') || '';
 
 async function handleResponse(response) {
   if (!response.ok) {
@@ -28,3 +31,4 @@ export async function createEntry(content) {
 export function getApiBaseUrl() {
   return `${API_BASE_URL}/api`;
 }
+
