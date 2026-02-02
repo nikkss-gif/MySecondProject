@@ -1,18 +1,14 @@
-// 🔐 Load environment variables inside db.js (MANDATORY)
 require('dotenv').config();
-
 const { Pool } = require('pg');
 
 if (!process.env.DATABASE_URL) {
-  console.error('❌ DATABASE_URL is not set');
+  console.error('DATABASE_URL is not set');
   process.exit(1);
 }
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false, // required for AWS RDS
-  },
+  ssl: { rejectUnauthorized: false },
 });
 
 async function initDb() {
@@ -21,12 +17,8 @@ async function initDb() {
       id SERIAL PRIMARY KEY,
       content TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
+    )
   `);
 }
 
-module.exports = {
-  pool,
-  initDb,
-};
-
+module.exports = { pool, initDb };

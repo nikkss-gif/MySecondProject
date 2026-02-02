@@ -1,60 +1,63 @@
+// backend/src/server.js
+require('dotenv').config(); // MUST be first
+
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const { pool, initDb } = require('./db');
 
-dotenv.config();
-
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://127.0.0.1:3000',
-  'http://18.206.149.235:3000'
-];
-
-app.use(
-  cors({
-    origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error('Not allowed by CORS'));
-    },
-  })
-);
-
+// ✅ Allow same-origin requests (Nginx reverse proxy)
+app.use(cors());
 app.use(express.json());
 
+// Health check
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
+// Fetch entries
 app.get('/api/entries', async (_req, res) => {
-  const { rows } = await pool.query(
-    'SELECT id, content, created_at FROM entries ORDER BY created_at DESC'
-  );
-  res.json(rows);
+  try {
+    const { rows } = await pool.query(
+      'SELECT id, content, created_at FROM entries ORDER BY created_at DESC'
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to fetch entries' });
+  }
 });
 
+// Create entry
 app.post('/api/entries', async (req, res) => {
-  const content = (req.body?.content || '').trim();
-  if (!content) return res.status(400).json({ message: 'Content is required.' });
+  try {
+    const content = (req.body?.content || '').trim();
+    if (!content) {
+      return res.status(400).json({ message: 'Content is required.' });
+    }
 
-  const {
-    rows: [entry],
-  } = await pool.query(
-    'INSERT INTO entries (content) VALUES ($1) RETURNING id, content, created_at',
-    [content]
-  );
+    const {
+      rows: [entry],
+    } = await pool.query(
+      'INSERT INTO entries (content) VALUES ($1) RETURNING id, content, created_at',
+      [content]
+    );
 
-  res.status(201).json(entry);
+    res.status(201).json(entry);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to create entry' });
+  }
 });
 
+// Bootstrap
 async function bootstrap() {
   await initDb();
-  app.listen(PORT, () => console.log(`Backend running on ${PORT}`));
+  app.listen(PORT, () =>
+    console.log(`Backend running on ${PORT}`)
+  );
 }
 
 bootstrap();
