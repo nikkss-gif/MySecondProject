@@ -11,3 +11,4 @@ pnpm-debug.log
 dist
 frontend/dist
 backend/dist
+*.save
